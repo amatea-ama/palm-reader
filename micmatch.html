@@ -300,6 +300,7 @@ main{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align
     <button class="btn-more more-pro" id="morePro">🎛 プロ仕様をもっと見る</button>
   </div>
   <div class="extra-mics" id="extraMics"></div>
+  <div style="font-size:10px;color:var(--text-dim);margin-bottom:10px;padding:8px 12px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);line-height:1.7;">※ 表示価格は参考値です。実際の販売価格は Amazon・サウンドハウス等でご確認ください。</div>
   <button class="btn-dl" id="dlBtn">⬇ 結果を画像として保存</button>
   <button class="btn-restart" id="restartBtn">← もう一度診断する</button>
 </div>
@@ -804,35 +805,49 @@ document.getElementById('dlBtn').addEventListener('click',function(){
   ctx.fillStyle='#090b0f';ctx.fillRect(0,0,W,H);
   var g1=ctx.createRadialGradient(W/2,0,0,W/2,0,H*0.5);g1.addColorStop(0,'rgba(0,200,180,0.08)');g1.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
   // グリッド
-  ctx.strokeStyle='rgba(0,200,180,0.03)';ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(0,200,180,0.04)';ctx.lineWidth=1;
   for(var x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(var y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  function div(yy){var g=ctx.createLinearGradient(PAD,yy,W-PAD,yy);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,'rgba(0,200,180,0.2)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(PAD,yy);ctx.lineTo(W-PAD,yy);ctx.stroke();}
+  for(var y2=0;y2<H;y2+=40){ctx.beginPath();ctx.moveTo(0,y2);ctx.lineTo(W,y2);ctx.stroke();}
+  function div(yy){var g=ctx.createLinearGradient(PAD,yy,W-PAD,yy);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,'rgba(0,200,180,0.25)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(PAD,yy);ctx.lineTo(W-PAD,yy);ctx.stroke();}
   var y=PAD;
   // ヘッダー
-  ctx.font='bold 26px "Syne",Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText('🎙  MicMatch',PAD,y+26);
-  ctx.font='18px Georgia,sans-serif';ctx.fillStyle='rgba(0,200,180,0.7)';ctx.textAlign='right';ctx.fillText('あなたの声に合うマイク',W-PAD,y+26);ctx.textAlign='left';
+  ctx.font='bold 26px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText('MicMatch',PAD,y+26);
+  ctx.font='18px Georgia,sans-serif';ctx.fillStyle='rgba(0,200,180,0.8)';ctx.textAlign='right';ctx.fillText('あなたの声に合うマイク',W-PAD,y+26);ctx.textAlign='left';
   y+=62;div(y);y+=28;
   // サマリー
-  ctx.font='26px serif';ctx.fillStyle='#94a3b8';
-  wrapT(ctx,lastResult.summary||'',COL).forEach(function(l){ctx.fillText(l,PAD,y);y+=40;});
+  ctx.font='26px serif';ctx.fillStyle='#cbd5e1';
+  wrapT(ctx,lastResult.summary||'',COL).forEach(function(l){ctx.fillText(l,PAD,y);y+=42;});
   y+=12;div(y);y+=28;
-  // 声の解析
+  // 声の解析（説明文つき）
   var vd=lastVoiceData||{freq:0,rms:0,hiRatio:0,loRatio:0};
   if(vd.freq>0){
-    ctx.font='bold 20px "Syne",Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText('— 声の解析',PAD,y);y+=30;
-    ctx.font='24px serif';ctx.fillStyle='#64748b';
-    ctx.fillText('基本周波数: '+vd.freq+'Hz　音圧: '+vd.rms+'　高域: '+vd.hiRatio+'%　低域: '+vd.loRatio+'%',PAD,y);y+=36;
-    div(y);y+=28;
+    var freqLbl=vd.freq<140?'低声域':vd.freq<200?'中低声域':vd.freq<280?'中声域':vd.freq<350?'中高声域':'高声域';
+    var rmsLbl=vd.rms<2?'小さめ':vd.rms<5?'普通':'大きめ';
+    var hiLbl=vd.hiRatio>30?'サ行刺さりリスクあり':vd.hiRatio>20?'やや高め':'適正';
+    var loLbl=vd.loRatio>60?'こもり傾向あり':vd.loRatio>45?'やや低域多め':'適正';
+    ctx.font='bold 22px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText('— 声の解析結果',PAD,y);y+=36;
+    var vaItems=[
+      ['基本周波数',vd.freq+'Hz',freqLbl],
+      ['音圧レベル',vd.rms+'',rmsLbl],
+      ['高域エネルギー',vd.hiRatio+'%',hiLbl],
+      ['低域比率',vd.loRatio+'%',loLbl],
+    ];
+    vaItems.forEach(function(va){
+      ctx.font='bold 20px Georgia,sans-serif';ctx.fillStyle='#94a3b8';ctx.fillText(va[0],PAD,y);
+      ctx.font='bold 24px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(va[1],PAD+220,y);
+      ctx.font='22px serif';ctx.fillStyle='#e2e8f0';ctx.fillText(va[2],PAD+340,y);
+      y+=38;
+    });
+    y+=8;div(y);y+=28;
   }
   // マイク
   mics.forEach(function(mic,i){
     var bLabel=mic.badge==='top'?'◎ イチ推し':mic.badge==='pro'?'🎛 プロ仕様':mic.badge==='hs'?'🎧 ヘッドセット':'📦 スタンダード';
-    ctx.font='bold 22px "Syne",Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(bLabel,PAD,y);
-    ctx.font='bold 28px "Syne",Georgia,sans-serif';ctx.fillStyle='#e2e8f0';ctx.fillText(mic.name,PAD+180,y);
-    ctx.font='20px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(mic.price,PAD+180,y+28);y+=52;
-    ctx.font='26px serif';ctx.fillStyle='#64748b';
-    wrapT(ctx,mic.reason||'',COL).forEach(function(l){ctx.fillText(l,PAD,y);y+=40;});
+    ctx.font='bold 20px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(bLabel,PAD,y);y+=32;
+    ctx.font='bold 30px Georgia,sans-serif';ctx.fillStyle='#f1f5f9';ctx.fillText(mic.name,PAD,y);y+=36;
+    ctx.font='22px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(mic.price+'（参考価格）',PAD,y);y+=36;
+    ctx.font='24px serif';ctx.fillStyle='#cbd5e1';
+    wrapT(ctx,mic.reason||'',COL).forEach(function(l){ctx.fillText(l,PAD,y);y+=38;});
     y+=16;if(i<mics.length-1){div(y);y+=24;}
   });
   // フッター
@@ -844,6 +859,17 @@ document.getElementById('dlBtn').addEventListener('click',function(){
 
 /* ══════ RESTART ══════ */
 document.getElementById('restartBtn').addEventListener('click',function(){
+  // URLモードのとき：ボタン押下でカウント消費 → 上限なら戻れない
+  if(urlMode&&urlToken){
+    var uses=parseInt(localStorage.getItem('micmatch_uses_'+urlToken)||'0');
+    if(uses>=2){
+      var ls=document.getElementById('screen-limit');
+      SCREENS.forEach(function(s){document.getElementById(s).style.display='none';});
+      ls.style.display='flex';ls.style.alignItems='center';ls.style.justifyContent='center';
+      return;
+    }
+    localStorage.setItem('micmatch_uses_'+urlToken, uses+1);
+  }
   currentQ=0;answers={};voiceData={freq:0,rms:0,hiRatio:0,loRatio:0};lastResult=null;lastVoiceData=null;
   if(audioCtx){audioCtx.close();audioCtx=null;}
   isRecording=false;clearInterval(recTimer);
