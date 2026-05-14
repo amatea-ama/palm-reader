@@ -875,7 +875,7 @@ document.getElementById('adminGenBtn').addEventListener('click',function(){
   if(!val||!val.startsWith('sk-ant-')){errEl.textContent='sk-ant- から始まるキーを入力してください';return;}
   errEl.textContent='';
   var token=Math.random().toString(36).slice(2,10);
-  var encoded=btoa(val);
+  var encoded=btoa(val).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
   var url=location.href.split('#')[0]+'#k='+encoded+'&t='+token;
   document.getElementById('adminUrlBox').textContent=url;
   document.getElementById('adminUrlBox').style.display='block';
@@ -904,7 +904,7 @@ document.getElementById('issueBtn').addEventListener('click',function(){
   // URLフラグメントからキーを取得
   var hash=location.hash.slice(1);
   var params={};
-  hash.split('&').forEach(function(p){var kv=p.split('=');if(kv[0])params[kv[0]]=kv[1]||'';});
+  hash.split('&').forEach(function(p){var ei=p.indexOf('=');if(ei>0)params[p.slice(0,ei)]=p.slice(ei+1);});
 
   if(params.k){
     // URLモード
@@ -917,7 +917,9 @@ document.getElementById('issueBtn').addEventListener('click',function(){
       return;
     }
     // キーをデコード
-    try{apiKey=atob(params.k);}catch(e){apiKey='';}
+    var b64r=params.k.replace(/-/g,'+').replace(/_/g,'/');
+    while(b64r.length%4)b64r+='=';
+    try{apiKey=atob(b64r);}catch(e){apiKey='';}
     document.getElementById('apikey-screen').remove();
     // プライバシーモーダル表示
     showPrivacy();
