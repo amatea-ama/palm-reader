@@ -854,7 +854,7 @@ document.getElementById('restartBtn').addEventListener('click',function(){
 /* ══════ INIT ══════ */
 (function init(){
   var hash=location.hash.slice(1);var params={};
-  hash.split('&').forEach(function(p){var kv=p.split('=');if(kv[0])params[kv[0]]=kv[1]||'';});
+  hash.split('&').forEach(function(p){var ei=p.indexOf('=');if(ei>0)params[p.slice(0,ei)]=p.slice(ei+1);});
   if(params.k){
     urlMode=true;urlToken=params.t||'';
     // 使用回数チェック（2回まで）
