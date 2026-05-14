@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MicMatch — あなたの声に合うマイクを</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090b0f;--bg2:#0e1117;--bg3:#141820;
+  --teal:#00c8b4;--teal-dim:rgba(0,200,180,0.4);--teal-glow:rgba(0,200,180,0.08);
+  --gold:#c9a84c;--gold-dim:rgba(201,168,76,0.4);
+  --text:#e2e8f0;--text-dim:#64748b;--text-mid:#94a3b8;
+  --red:#ff4d6d;--border:rgba(0,200,180,0.12);--border-bright:rgba(0,200,180,0.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;}html,body{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,200,180,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,180,0.03) 1px,transparent 1px);background-size:40px 40px;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(0,200,180,0.06) 0%,transparent 60%);}
+header{position:relative;z-index:10;padding:14px 20px;border-bottom:1px solid var(--border);background:rgba(9,11,15,0.9);backdrop-filter:blur(12px);display:flex;align-items:center;gap:10px;}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:1px;}
+.logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--teal),#0090a0);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 14px rgba(0,200,180,0.3);}
+.logo-text span{color:var(--teal);}
+.step-label{flex:1;font-size:11px;color:var(--text-dim);text-align:center;font-family:'Syne',sans-serif;letter-spacing:1px;}
+.issue-btn{background:linear-gradient(135deg,rgba(0,200,180,0.1),rgba(201,168,76,0.08));border:1px solid rgba(0,200,180,0.25);border-radius:8px;padding:5px 10px;color:var(--teal);font-size:10px;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:none;}
+.issue-btn.visible{display:block;}
+.issue-btn:hover{background:linear-gradient(135deg,rgba(0,200,180,0.18),rgba(201,168,76,0.14));}
+.key-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text-dim);font-size:10px;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.2s;display:none;}
+.key-btn.visible{display:block;}
+.key-btn:hover{border-color:var(--teal-dim);color:var(--teal);}
+main{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 18px 60px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes waveAnim{0%,100%{transform:scaleY(0.4);opacity:0.4}50%{transform:scaleY(1);opacity:1}}
+
+/* WELCOME */
+#screen-welcome{text-align:center;max-width:500px;width:100%;animation:fadeUp 0.7s ease;}
+.waveform{display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:28px;height:44px;}
+.waveform span{display:block;width:3px;background:var(--teal);border-radius:2px;animation:waveAnim 1.4s ease-in-out infinite;}
+.waveform span:nth-child(1){height:12px;animation-delay:0s}.waveform span:nth-child(2){height:26px;animation-delay:0.1s}.waveform span:nth-child(3){height:38px;animation-delay:0.2s}.waveform span:nth-child(4){height:44px;animation-delay:0.3s}.waveform span:nth-child(5){height:32px;animation-delay:0.4s}.waveform span:nth-child(6){height:44px;animation-delay:0.5s}.waveform span:nth-child(7){height:26px;animation-delay:0.4s}.waveform span:nth-child(8){height:38px;animation-delay:0.3s}.waveform span:nth-child(9){height:18px;animation-delay:0.2s}.waveform span:nth-child(10){height:30px;animation-delay:0.1s}.waveform span:nth-child(11){height:12px;animation-delay:0s}
+#screen-welcome h1{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;letter-spacing:-0.5px;margin-bottom:10px;line-height:1.2;}
+#screen-welcome h1 span{color:var(--teal);}
+#screen-welcome>p{font-size:13px;color:var(--text-mid);line-height:1.8;margin-bottom:24px;font-weight:300;}
+.privacy-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left;}
+.privacy-box-title{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:10px;}
+.privacy-box ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.privacy-box li{font-size:11px;color:var(--text-mid);line-height:1.6;padding-left:16px;position:relative;}
+.privacy-box li::before{content:'✓';position:absolute;left:0;color:var(--teal);font-size:10px;}
+.btn-start{padding:13px 40px;background:var(--teal);border:none;border-radius:12px;color:#050a0a;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 16px rgba(0,200,180,0.25);}
+.btn-start:hover{background:#20e0cc;box-shadow:0 4px 24px rgba(0,200,180,0.4);transform:translateY(-1px);}
+
+/* QUESTION */
+#screen-question{width:100%;max-width:540px;animation:fadeUp 0.4s ease;}
+.q-label{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:10px;opacity:0.8;}
+.q-text{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;line-height:1.35;margin-bottom:7px;}
+.q-sub{font-size:12px;color:var(--text-mid);margin-bottom:22px;font-weight:300;line-height:1.6;}
+.opts-single{display:flex;flex-direction:column;gap:9px;margin-bottom:24px;}
+.opt-s{padding:13px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:11px;font-size:13px;color:var(--text);text-align:left;width:100%;}
+.opt-s:hover{border-color:var(--teal-dim);background:var(--teal-glow);}
+.opt-s.sel{border-color:var(--teal);background:rgba(0,200,180,0.1);color:var(--teal);}
+.opt-dot{width:17px;height:17px;border:1.5px solid var(--border-bright);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.opt-s.sel .opt-dot{background:var(--teal);border-color:var(--teal);}
+.opt-s.sel .opt-dot::after{content:'';width:6px;height:6px;background:#050a0a;border-radius:50%;}
+.opt-desc{font-size:10px;color:var(--text-dim);margin-top:2px;}
+.opts-multi{display:flex;flex-direction:column;gap:7px;margin-bottom:24px;}
+.opt-group-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);padding:10px 0 4px;font-family:'Syne',sans-serif;border-top:1px solid var(--border);margin-top:4px;}
+.opt-group-lbl:first-child{border-top:none;margin-top:0;padding-top:0;}
+.opt-m{padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--text-mid);line-height:1.5;text-align:left;width:100%;}
+.opt-m:hover{border-color:var(--teal-dim);background:var(--teal-glow);}
+.opt-m.sel{border-color:var(--teal);background:rgba(0,200,180,0.08);color:var(--text);}
+.opt-chk{width:15px;height:15px;flex-shrink:0;margin-top:1px;border:1.5px solid var(--border-bright);border-radius:4px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;}
+.opt-m.sel .opt-chk{background:var(--teal);border-color:var(--teal);}
+.opt-m.sel .opt-chk::after{content:'✓';font-size:9px;color:#050a0a;font-weight:700;}
+.q-nav{display:flex;gap:9px;align-items:center;}
+.btn-next{flex:1;padding:12px;background:var(--teal);border:none;border-radius:11px;color:#050a0a;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.btn-next:hover:not(:disabled){background:#20e0cc;box-shadow:0 0 18px rgba(0,200,180,0.4);}
+.btn-next:disabled{opacity:0.3;cursor:not-allowed;}
+.btn-back{padding:12px 16px;background:none;border:1px solid var(--border);border-radius:11px;color:var(--text-dim);font-size:12px;cursor:pointer;transition:all 0.2s;}
+.btn-back:hover{border-color:var(--text-dim);color:var(--text);}
+.skip-lnk{font-size:10px;color:var(--text-dim);cursor:pointer;text-decoration:underline;margin-left:4px;}
+
+/* RECORDING */
+#screen-recording{width:100%;max-width:520px;text-align:center;animation:fadeUp 0.5s ease;}
+.rec-title{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-bottom:6px;}
+.rec-sub{font-size:12px;color:var(--text-mid);margin-bottom:22px;font-weight:300;}
+.karaoke-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:22px 22px;margin-bottom:18px;text-align:left;position:relative;overflow:hidden;}
+.karaoke-hint{font-size:10px;color:var(--teal);letter-spacing:1.5px;text-transform:uppercase;font-family:'Syne',sans-serif;margin-bottom:12px;}
+.karaoke-line{font-size:16px;line-height:2;margin-bottom:2px;}
+.karaoke-line span{color:rgba(148,163,184,0.28);transition:color 0.15s;}
+.karaoke-line span.lit{color:var(--text);}
+.karaoke-line.instr span{color:rgba(0,200,180,0.6)!important;}
+.rec-timer-ring{width:80px;height:80px;margin:0 auto 16px;position:relative;}
+.rec-timer-ring svg{transform:rotate(-90deg);}
+.rec-timer-circle{fill:none;stroke:var(--bg3);stroke-width:6;}
+.rec-timer-progress{fill:none;stroke:var(--teal);stroke-width:6;stroke-linecap:round;stroke-dasharray:226;stroke-dashoffset:226;transition:stroke-dashoffset 0.1s linear;filter:drop-shadow(0 0 4px rgba(0,200,180,0.5));}
+.rec-timer-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--teal);}
+.rec-status{font-size:12px;color:var(--text-mid);margin-bottom:18px;min-height:20px;}
+.rec-pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1s ease-in-out infinite;margin-right:6px;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.btn-rec{width:100%;padding:14px;background:var(--red);border:none;border-radius:12px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;margin-bottom:9px;}
+.btn-rec:hover{background:#ff6b84;box-shadow:0 0 20px rgba(255,77,109,0.4);}
+.btn-rec.recording{background:var(--bg3);color:var(--text-mid);cursor:default;}
+.btn-retake{width:100%;padding:12px;background:none;border:1px solid var(--border);border-radius:11px;color:var(--text-dim);font-size:12px;cursor:pointer;transition:all 0.2s;display:none;}
+.btn-retake.visible{display:block;}
+.btn-retake:hover{border-color:var(--teal-dim);color:var(--teal);}
+.btn-rec-done{width:100%;padding:13px;background:var(--teal);border:none;border-radius:12px;color:#050a0a;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;display:none;margin-bottom:9px;}
+.btn-rec-done.visible{display:block;}
+.btn-rec-done:hover{background:#20e0cc;box-shadow:0 0 18px rgba(0,200,180,0.35);}
+
+/* ANALYZING */
+#screen-analyzing{text-align:center;display:none;flex-direction:column;align-items:center;}
+.analyzer-wave{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:36px;margin-bottom:20px;}
+.analyzer-wave span{display:block;width:4px;background:var(--teal);border-radius:2px;animation:loadBar 1s ease-in-out infinite;}
+.analyzer-wave span:nth-child(1){animation-delay:0s}.analyzer-wave span:nth-child(2){animation-delay:0.1s}.analyzer-wave span:nth-child(3){animation-delay:0.2s}.analyzer-wave span:nth-child(4){animation-delay:0.3s}.analyzer-wave span:nth-child(5){animation-delay:0.4s}
+@keyframes loadBar{0%,100%{height:8px;opacity:0.4}50%{height:34px;opacity:1}}
+#screen-analyzing p{font-family:'Syne',sans-serif;font-size:12px;color:var(--text-mid);letter-spacing:2px;text-transform:uppercase;}
+#analyzing-msg{margin-top:6px;font-size:11px;color:var(--text-dim);}
+
+/* RESULT */
+#screen-result{width:100%;max-width:640px;display:none;padding-bottom:48px;}
+.result-header{margin-bottom:22px;}
+.result-header h2{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.3px;margin-bottom:5px;}
+.result-header h2 span{color:var(--teal);}
+.result-header p{font-size:12px;color:var(--text-mid);font-weight:300;}
+
+/* 声の解析カード */
+.voice-analysis-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;}
+.va-title{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.va-title::before{content:'';display:inline-block;width:18px;height:1px;background:var(--teal);opacity:0.4;}
+.va-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.va-item{background:var(--bg3);border-radius:10px;padding:12px;}
+.va-item-label{font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;font-family:'Syne',sans-serif;}
+.va-item-value{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--teal);margin-bottom:4px;}
+.va-item-desc{font-size:10px;color:var(--text-mid);}
+.va-bar-wrap{height:3px;background:rgba(0,200,180,0.1);border-radius:2px;overflow:hidden;margin-top:8px;}
+.va-bar{height:100%;border-radius:2px;background:linear-gradient(to right,var(--teal),#40e0d0);transition:width 1s ease 0.3s;}
+.voice-summary{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:10px;padding:13px 16px;font-size:12px;color:var(--text-mid);line-height:1.75;margin-bottom:16px;}
+
+/* マイクカード */
+.mics-list{display:flex;flex-direction:column;gap:14px;margin-bottom:16px;}
+.mic-card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:18px;transition:border-color 0.2s;animation:fadeUp 0.5s ease both;}
+.mic-card:hover{border-color:var(--border-bright);}
+.mic-card.top{border-color:rgba(0,200,180,0.35);background:rgba(0,200,180,0.04);}
+.mic-header{display:flex;align-items:flex-start;justify-content:space-between;gap:11px;margin-bottom:11px;}
+.mic-name{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;}
+.mic-price{font-family:'Syne',sans-serif;font-size:12px;color:var(--teal);margin-top:3px;}
+.mic-badge{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;font-family:'Syne',sans-serif;white-space:nowrap;}
+.mic-badge.top{background:rgba(0,200,180,0.15);color:var(--teal);border:1px solid rgba(0,200,180,0.3);}
+.mic-badge.std{background:rgba(148,163,184,0.1);color:var(--text-mid);border:1px solid rgba(148,163,184,0.2);}
+.mic-badge.pro{background:rgba(139,92,246,0.1);color:#a78bfa;border:1px solid rgba(139,92,246,0.25);}
+.mic-badge.hs{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);}
+.mic-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.mic-tag{font-size:9px;padding:2px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text-dim);}
+.mic-reason{font-size:12px;color:var(--text-mid);line-height:1.75;font-weight:300;border-top:1px solid var(--border);padding-top:10px;}
+.mic-reason strong{color:var(--text);font-weight:500;}
+.mic-note{margin-top:7px;font-size:11px;color:rgba(251,191,36,0.7);}
+.btn-more-wrap{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px;}
+.btn-more{padding:9px 16px;background:none;border:1px solid var(--border);border-radius:9px;font-size:11px;cursor:pointer;transition:all 0.2s;font-family:'Syne',sans-serif;display:flex;align-items:center;gap:5px;}
+.btn-more.more-top{color:var(--teal);border-color:rgba(0,200,180,0.25);}
+.btn-more.more-std{color:var(--text-mid);border-color:rgba(148,163,184,0.2);}
+.btn-more.more-pro{color:#a78bfa;border-color:rgba(139,92,246,0.25);}
+.btn-more:hover{background:rgba(0,200,180,0.06);}
+.btn-more:disabled{opacity:0.35;cursor:not-allowed;}
+.loading-inline{display:flex;align-items:center;gap:9px;padding:13px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;font-size:11px;color:var(--text-dim);font-family:'Syne',sans-serif;letter-spacing:1px;}
+.spinner{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.extra-mics{display:flex;flex-direction:column;gap:12px;margin-top:12px;}
+.btn-dl{width:100%;margin-top:6px;padding:13px;background:linear-gradient(135deg,rgba(0,200,180,0.1),rgba(201,168,76,0.08));border:1px solid rgba(0,200,180,0.25);border-radius:12px;color:var(--teal);font-family:'Syne',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
+.btn-dl:hover{background:linear-gradient(135deg,rgba(0,200,180,0.18),rgba(201,168,76,0.14));box-shadow:0 2px 12px rgba(0,200,180,0.2);}
+.btn-restart{width:100%;margin-top:8px;padding:12px;background:none;border:1px solid var(--border);border-radius:11px;color:var(--text-dim);font-size:12px;cursor:pointer;transition:all 0.2s;font-family:'Syne',sans-serif;}
+.btn-restart:hover{border-color:var(--teal-dim);color:var(--teal);}
+
+/* 使用回数上限 */
+#screen-limit{position:fixed;inset:0;z-index:300;background:var(--bg);display:none;align-items:center;justify-content:center;text-align:center;padding:24px;}
+.limit-card{max-width:340px;}
+.limit-icon{font-size:38px;display:block;margin-bottom:16px;}
+.limit-title{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--teal);margin-bottom:10px;}
+.limit-body{font-size:13px;color:var(--text-mid);line-height:1.85;}
+
+/* 管理者パネル */
+#admin-panel{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:24px;}
+.admin-card{background:var(--bg2);border:1px solid rgba(0,200,180,0.2);border-radius:18px;padding:28px 24px;max-width:400px;width:100%;}
+.admin-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:5px;}
+.admin-sub{font-size:11px;color:var(--text-dim);line-height:1.7;margin-bottom:16px;}
+.k-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:7px;transition:border-color 0.2s;}
+.k-wrap:focus-within{border-color:var(--teal-dim);}
+.k-in{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13px;}
+.k-in::placeholder{color:var(--text-dim);}
+.k-tog{background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:15px;transition:color 0.2s;}
+.k-tog:hover{color:var(--teal);}
+.k-err{font-size:11px;color:var(--red);min-height:15px;margin-bottom:7px;}
+.url-box{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:10px;color:var(--text-mid);word-break:break-all;margin:12px 0;font-family:monospace;line-height:1.6;display:none;}
+.btn-gen{width:100%;padding:11px;background:var(--teal);border:none;border-radius:10px;color:#050a0a;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;cursor:pointer;margin-bottom:7px;transition:all 0.2s;}
+.btn-gen:hover{background:#20e0cc;}
+.btn-copy{width:100%;padding:9px;background:none;border:1px solid rgba(0,200,180,0.2);border-radius:9px;color:var(--teal);font-size:11px;cursor:pointer;display:none;transition:all 0.2s;margin-bottom:7px;}
+.btn-copy:hover{background:rgba(0,200,180,0.08);}
+.btn-admin-close{width:100%;padding:9px;background:none;border:1px solid var(--border);border-radius:9px;color:var(--text-dim);font-size:12px;cursor:pointer;}
+
+/* APIキー画面 */
+#apikey-screen{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;}
+.kcard{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:32px 26px 26px;max-width:390px;width:100%;text-align:center;}
+.kcard-icon{font-size:28px;display:block;margin-bottom:14px;}
+.kcard h2{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--teal);margin-bottom:7px;}
+.kcard>p{font-size:12px;color:var(--text-mid);line-height:1.8;margin-bottom:20px;}
+.save-row{display:flex;align-items:center;gap:7px;margin-bottom:16px;justify-content:flex-start;}
+.save-row input[type=checkbox]{accent-color:var(--teal);width:13px;height:13px;cursor:pointer;}
+.save-row label{font-size:11px;color:var(--text-dim);cursor:pointer;}
+.btn-ksubmit{width:100%;padding:12px;background:var(--teal);border:none;border-radius:11px;color:#050a0a;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;cursor:pointer;transition:all 0.2s;}
+.btn-ksubmit:hover{background:#20e0cc;box-shadow:0 0 18px rgba(0,200,180,0.35);}
+.knote{font-size:10px;color:var(--text-dim);margin-top:13px;line-height:1.7;}
+.knote a{color:var(--teal);text-decoration:none;opacity:0.7;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logo-mark">🎙</div><div class="logo-text">Mic<span>Match</span></div></div>
+  <div class="step-label" id="stepLabel"></div>
+  <button class="issue-btn" id="issueBtn">🔗 URLを発行</button>
+  <button class="key-btn" id="keyBtn">🔑 API Key</button>
+</header>
+<main>
+
+<!-- ウェルカム -->
+<div id="screen-welcome">
+  <div class="waveform"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <h1>あなたの声に合う<br><span>マイクを見つける</span></h1>
+  <p>アンケートと声の録音解析で、<br>あなたの声質・用途・環境に最適なマイクを提案します。</p>
+  <div class="privacy-box">
+    <div class="privacy-box-title">✦ プライバシーについて</div>
+    <ul>
+      <li>録音データはお使いのデバイス上でのみ処理されます</li>
+      <li>入力情報・録音・解析結果はサーバーに保存されません</li>
+      <li>管理者を含む第三者が内容を確認することは一切できません</li>
+      <li>ページを閉じると全てのデータが消去されます</li>
+    </ul>
+  </div>
+  <button class="btn-start" id="startBtn">診断を始める →</button>
+</div>
+
+<!-- アンケート -->
+<div id="screen-question" style="display:none">
+  <div class="q-label" id="qLabel"></div>
+  <div class="q-text" id="qText"></div>
+  <div class="q-sub" id="qSub"></div>
+  <div id="qOptions"></div>
+  <div class="q-nav">
+    <button class="btn-back" id="qBack">← 戻る</button>
+    <button class="btn-next" id="qNext">次へ →</button>
+  </div>
+</div>
+
+<!-- 録音 -->
+<div id="screen-recording" style="display:none">
+  <div class="q-label">録音ステップ</div>
+  <div class="rec-title">例文を声に出して読んでください</div>
+  <div class="rec-sub">録音ボタンを押すと文字が光りながら進みます。自然な声でOKです。</div>
+  <div class="karaoke-box">
+    <div class="karaoke-hint">▶ 以下の文章を読み上げてください</div>
+    <div class="karaoke-line instr" id="kLine0"></div>
+    <div class="karaoke-line" id="kLine1"></div>
+    <div class="karaoke-line" id="kLine2"></div>
+    <div class="karaoke-line" id="kLine3"></div>
+    <div class="karaoke-line" id="kLine4"></div>
+  </div>
+  <div class="rec-timer-ring">
+    <svg width="80" height="80" viewBox="0 0 80 80">
+      <circle class="rec-timer-circle" cx="40" cy="40" r="36"/>
+      <circle class="rec-timer-progress" id="timerProgress" cx="40" cy="40" r="36"/>
+    </svg>
+    <div class="rec-timer-text" id="timerText">20</div>
+  </div>
+  <div class="rec-status" id="recStatus">録音ボタンを押して開始してください</div>
+  <button class="btn-rec" id="recBtn">● 録音開始</button>
+  <button class="btn-rec-done" id="recDoneBtn">✦ この録音で進む</button>
+  <button class="btn-retake" id="retakeBtn">↺ 取り直す</button>
+</div>
+
+<!-- 解析中 -->
+<div id="screen-analyzing" style="display:none;flex-direction:column;align-items:center;text-align:center;">
+  <div class="analyzer-wave"><span></span><span></span><span></span><span></span><span></span></div>
+  <p style="font-family:'Syne',sans-serif;font-size:12px;color:var(--text-mid);letter-spacing:2px;text-transform:uppercase;">声を解析しています</p>
+  <div id="analyzing-msg" style="font-size:11px;color:var(--text-dim);margin-top:6px;"></div>
+</div>
+
+<!-- 結果 -->
+<div id="screen-result">
+  <div class="result-header">
+    <h2>あなたの声に合う<br><span>マイクはこちら</span></h2>
+    <p>声の解析結果とアンケートをもとに絞り込みました</p>
+  </div>
+  <div class="voice-analysis-card">
+    <div class="va-title">声の解析結果</div>
+    <div class="va-grid" id="vaGrid"></div>
+  </div>
+  <div class="voice-summary" id="voiceSummary"></div>
+  <div class="mics-list" id="micsList"></div>
+  <div class="btn-more-wrap">
+    <button class="btn-more more-top" id="moreTop">◎ おすすめをもっと見る</button>
+    <button class="btn-more more-std" id="moreStd">📦 他のスタンダードを見る</button>
+    <button class="btn-more more-pro" id="morePro">🎛 プロ仕様をもっと見る</button>
+  </div>
+  <div class="extra-mics" id="extraMics"></div>
+  <button class="btn-dl" id="dlBtn">⬇ 結果を画像として保存</button>
+  <button class="btn-restart" id="restartBtn">← もう一度診断する</button>
+</div>
+
+</main>
+
+<!-- 使用回数上限 -->
+<div id="screen-limit" style="display:none">
+  <div class="limit-card">
+    <span class="limit-icon">🎙</span>
+    <div class="limit-title">診断の上限に達しました</div>
+    <p class="limit-body">このURLでの診断は2回までです。<br>新しいURLが必要な場合は管理者にお問い合わせください。</p>
+  </div>
+</div>
+
+<!-- 管理者パネル -->
+<div id="admin-panel">
+  <div class="admin-card">
+    <div class="admin-title">🔗 URLを発行する</div>
+    <p class="admin-sub">APIキーを入力してURLを発行します。発行されたURLは最大2回まで使用できます。</p>
+    <div class="k-wrap"><input class="k-in" id="adminKey" type="password" placeholder="sk-ant-..." autocomplete="off"/><button class="k-tog" id="adminTog">👁</button></div>
+    <div class="k-err" id="adminErr"></div>
+    <button class="btn-gen" id="adminGen">✦ URLを発行する</button>
+    <div class="url-box" id="urlBox"></div>
+    <button class="btn-copy" id="urlCopy">📋 URLをコピー</button>
+    <button class="btn-admin-close" id="adminClose">閉じる</button>
+  </div>
+</div>
+
+<!-- APIキー画面 -->
+<div id="apikey-screen">
+  <div class="kcard">
+    <span class="kcard-icon">🎙</span>
+    <h2>MicMatch</h2>
+    <p>Anthropic の API キーを入力してください。<br>キーはこのブラウザにのみ保存されます。</p>
+    <div class="k-wrap"><input class="k-in" id="keyInput" type="password" placeholder="sk-ant-..." autocomplete="off"/><button class="k-tog" id="keyToggle">👁</button></div>
+    <div class="k-err" id="keyError"></div>
+    <div class="save-row"><input type="checkbox" id="keySave" checked/><label for="keySave">このブラウザにキーを保存する</label></div>
+    <button class="btn-ksubmit" id="keySubmit">設定して診断を始める →</button>
+    <p class="knote">APIキーは <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> で取得できます。</p>
+  </div>
+</div>
+<script>
+/* ══════ STATE ══════ */
+var apiKey='',urlMode=false,urlToken='';
+var currentQ=0,answers={};
+var audioCtx=null,analyser=null,recorder=null,audioChunks=[];
+var isRecording=false,recTimer=null,recElapsed=0;
+var voiceData={freq:0,rms:0,hiRatio:0,loRatio:0};
+var freqSamples=[],rmsSamples=[],hiSamples=[],loSamples=[];
+var lastResult=null,lastVoiceData=null;
+var KARAOKE_DURATION=20;
+
+/* ══════ QUESTIONS ══════ */
+var QUESTIONS=[
+  {id:'purpose',label:'STEP 1 / 7 ── 用途',text:'どんな目的で使いますか？',sub:'当てはまるものをすべて選んでください',type:'multi',required:true,
+    options:[{v:'streaming',l:'🎮 配信・ゲーム実況',d:'Discord/OBSでリアルタイム配信'},{v:'podcast',l:'🎙 ポッドキャスト・収録',d:'編集ありの音声コンテンツ制作'},{v:'singing',l:'🎵 歌・ボイスレコーディング',d:'楽曲制作・ナレーション等'},{v:'meeting',l:'💼 ビデオ会議・リモートワーク',d:'Zoom/Teams/Meet等'}]},
+  {id:'pitch',label:'STEP 2 / 7 ── 声の高さ',text:'声の高さは、同性の知人と比べると？',sub:'',type:'single',required:true,
+    options:[{v:'very_low',l:'かなり低い方'},{v:'low',l:'やや低い方'},{v:'mid',l:'真ん中くらい'},{v:'high',l:'やや高い方'},{v:'very_high',l:'かなり高い方'}]},
+  {id:'volume',label:'STEP 2 / 7 ── 声の大きさ',text:'自然に話したとき、声の大きさは？',sub:'',type:'single',required:true,
+    options:[{v:'small',l:'小さめ（よく聞き返される）'},{v:'normal',l:'普通'},{v:'loud',l:'大きめ（静かな場所で目立つ）'}]},
+  {id:'selfcheck',label:'STEP 3 / 7 ── 声の特徴（自己評価）',text:'当てはまると思うものは？',sub:'複数OK。わからなければスキップできます',type:'multi',required:false,skippable:true,
+    groups:[{label:'録音した自分の声を聴いて',opts:[{v:'rec_low',l:'思ったより低くて驚いた'},{v:'rec_high',l:'思ったより高くて驚いた'},{v:'rec_muddy',l:'こもって聞こえる'},{v:'rec_clear',l:'思ったよりクリアで自然だった'}]},{label:'実生活の場面で',opts:[{v:'life_mishear',l:'電話でよく聞き返される'},{v:'life_quiet',l:'大きく話しているつもりなのに「小さい」と言われる'},{v:'life_sibilant',l:'サ行・シ行を言うとき自分でも刺さる感じがする'},{v:'life_breath',l:'静かな場所だと息の音が気になる'}]}]},
+  {id:'feedback',label:'STEP 4 / 7 ── 他人からの評価',text:'これまでに言われたことがある言葉は？',sub:'複数OK。なければスキップできます',type:'multi',required:false,skippable:true,
+    options:[{v:'said_low',l:'「声が低いね」'},{v:'said_high',l:'「声が高いね」'},{v:'said_carry',l:'「よく通る声だね」'},{v:'said_clear',l:'「聞き取りやすい」'},{v:'said_quiet',l:'「もう少し大きく話して」'},{v:'said_husky',l:'「ハスキーだね・かすれてるね」'},{v:'said_none',l:'特に言われたことはない'}]},
+  {id:'device',label:'STEP 5 / 7 ── 機材の希望',text:'接続方式の希望は？',sub:'',type:'single',required:true,
+    options:[{v:'usb',l:'USBマイク希望',d:'PCに直接接続。I/F不要でシンプル'},{v:'xlr',l:'XLRマイク（I/F経由）',d:'I/F持ってる・購入予定。音質優先'},{v:'headset',l:'マイク付きヘッドセット希望',d:'ゲーミング・ビデオ会議向け'},{v:'either',l:'どちらでもOK',d:'おすすめを提案してほしい'}]},
+  {id:'env',label:'STEP 6 / 7 ── 使用環境',text:'使う部屋の環境は？',sub:'',type:'single',required:true,
+    options:[{v:'noisy',l:'防音なし・普通の部屋（エアコン音・外音あり）'},{v:'semi',l:'ある程度静か（夜間・扉を閉めた個室）'},{v:'quiet',l:'かなり静か（防音設備あり）'}]},
+  {id:'budget',label:'STEP 7 / 7 ── 予算',text:'マイクの予算帯は？',sub:'複数選んでもOKです',type:'multi',required:true,
+    options:[{v:'b5k',l:'〜¥5,000（まず試したい）'},{v:'b15k',l:'〜¥15,000（コスパ重視）'},{v:'b30k',l:'〜¥30,000（本格的に揃えたい）'},{v:'b30kp',l:'¥30,000〜（プロ仕様も検討）'}]},
+];
+
+/* カラオケ例文 */
+var KLINES=[
+  'この文章を自然な声で順番に読み上げてください。',
+  '今日は晴れた空の下、静かな公園を散歩しました。',
+  '小鳥のさえずりが聞こえ、清々しい気持ちになります。',
+  '空は青く澄み渡り、さわやかな風が吹き抜けていきます。',
+  '声に出して読むことで、あなたの声の特徴が分かります。'
+];
+
+/* ══════ SCREEN ══════ */
+var SCREENS=['screen-welcome','screen-question','screen-recording','screen-analyzing','screen-result'];
+function show(id){
+  SCREENS.forEach(function(s){document.getElementById(s).style.display='none';});
+  var el=document.getElementById(id);
+  if(id==='screen-analyzing'){el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';el.style.textAlign='center';}
+  else el.style.display='block';
+  window.scrollTo(0,0);
+  var labels={'screen-welcome':'','screen-question':'アンケート','screen-recording':'録音','screen-analyzing':'解析中','screen-result':'結果'};
+  document.getElementById('stepLabel').textContent=labels[id]||'';
+}
+
+/* ══════ API KEY ══════ */
+function setupKeyScreen(){
+  var scr=document.getElementById('apikey-screen');if(!scr)return;
+  document.getElementById('keyToggle').addEventListener('click',function(){
+    var i=document.getElementById('keyInput'),b=document.getElementById('keyToggle');
+    i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';
+  });
+  document.getElementById('keySubmit').addEventListener('click',submitKey);
+  document.getElementById('keyInput').addEventListener('keydown',function(e){if(e.key==='Enter')submitKey();});
+}
+function submitKey(){
+  var inp=document.getElementById('keyInput'),err=document.getElementById('keyError');
+  if(!inp||!err)return;
+  var val=inp.value.trim();
+  if(!val){err.textContent='キーを入力してください';return;}
+  if(!val.startsWith('sk-ant-')){err.textContent='sk-ant- から始まるキーを入力してください';return;}
+  err.textContent='';apiKey=val;
+  var cb=document.getElementById('keySave');if(cb&&cb.checked)localStorage.setItem('micmatch_api_key',val);
+  document.getElementById('apikey-screen').remove();
+  show('screen-welcome');
+}
+document.getElementById('keyBtn').addEventListener('click',function(){showKeyEdit();});
+function showKeyEdit(){
+  var saved=localStorage.getItem('micmatch_api_key')||'';
+  var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 22px;';
+  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;max-width:440px;width:100%;"><div style="font-family:Syne,sans-serif;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:14px;">🔑 API Key 設定</div><div class="k-wrap" style="margin-bottom:6px;"><input class="k-in" id="eInp" type="password" placeholder="sk-ant-..." value="'+saved+'" autocomplete="off"/><button class="k-tog" id="eTog">👁</button></div><div style="font-size:11px;color:var(--red);min-height:15px;margin-bottom:7px;" id="eErr"></div><div class="save-row"><input type="checkbox" id="eSave" '+(saved?'checked':'')+'/><label for="eSave">このブラウザにキーを保存する</label></div><div style="display:flex;gap:9px;margin-top:14px;"><button style="flex:1;padding:11px;background:none;border:1px solid var(--border);border-radius:9px;color:var(--text-dim);font-size:13px;cursor:pointer;" id="eCancel">キャンセル</button><button style="flex:2;padding:11px;background:var(--teal);border:none;border-radius:9px;color:#050a0a;font-family:Syne,sans-serif;font-weight:700;font-size:12px;cursor:pointer;" id="eSaveBtn">保存する</button></div></div>';
+  document.body.appendChild(ov);
+  ov.querySelector('#eTog').addEventListener('click',function(){var i=ov.querySelector('#eInp'),b=ov.querySelector('#eTog');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';});
+  ov.querySelector('#eCancel').addEventListener('click',function(){ov.remove();});
+  ov.querySelector('#eSaveBtn').addEventListener('click',function(){
+    var val=ov.querySelector('#eInp').value.trim(),errEl=ov.querySelector('#eErr');
+    if(val&&!val.startsWith('sk-ant-')){errEl.textContent='sk-ant- から始まるキーを入力してください';return;}
+    if(val){apiKey=val;if(ov.querySelector('#eSave').checked)localStorage.setItem('micmatch_api_key',val);else localStorage.removeItem('micmatch_api_key');}
+    ov.remove();
+  });
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+}
+
+/* ══════ 管理者パネル ══════ */
+document.getElementById('issueBtn').addEventListener('click',function(){
+  var saved=localStorage.getItem('micmatch_api_key')||'';
+  if(saved)document.getElementById('adminKey').value=saved;
+  document.getElementById('admin-panel').style.display='flex';
+});
+document.getElementById('adminTog').addEventListener('click',function(){
+  var i=document.getElementById('adminKey'),b=document.getElementById('adminTog');
+  i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';
+});
+document.getElementById('adminGen').addEventListener('click',function(){
+  var val=document.getElementById('adminKey').value.trim()||apiKey,errEl=document.getElementById('adminErr');
+  if(!val||!val.startsWith('sk-ant-')){errEl.textContent='sk-ant- から始まるキーを入力してください';return;}
+  errEl.textContent='';
+  var token=Math.random().toString(36).slice(2,10);
+  var url=location.href.split('#')[0]+'#k='+btoa(val)+'&t='+token;
+  document.getElementById('urlBox').textContent=url;document.getElementById('urlBox').style.display='block';
+  document.getElementById('urlCopy').style.display='block';
+});
+document.getElementById('urlCopy').addEventListener('click',function(){
+  navigator.clipboard.writeText(document.getElementById('urlBox').textContent).then(function(){
+    document.getElementById('urlCopy').textContent='✅ コピーしました';
+    setTimeout(function(){document.getElementById('urlCopy').textContent='📋 URLをコピー';},2000);
+  });
+});
+document.getElementById('adminClose').addEventListener('click',function(){document.getElementById('admin-panel').style.display='none';});
+
+/* ══════ QUESTIONNAIRE ══════ */
+document.getElementById('startBtn').addEventListener('click',function(){
+  if(!apiKey){submitKey();return;}
+  currentQ=0;answers={};renderQ(0);show('screen-question');
+});
+function renderQ(idx){
+  var q=QUESTIONS[idx];
+  document.getElementById('qLabel').textContent=q.label;
+  document.getElementById('qText').textContent=q.text;
+  document.getElementById('qSub').textContent=q.sub||'';
+  var optEl=document.getElementById('qOptions');optEl.innerHTML='';
+  var cur=answers[q.id]||(q.type==='multi'?[]:null);
+  if(q.type==='single'){
+    var wrap=document.createElement('div');wrap.className='opts-single';
+    q.options.forEach(function(opt){
+      var btn=document.createElement('button');btn.className='opt-s'+(cur===opt.v?' sel':'');
+      btn.innerHTML='<div class="opt-dot"></div><div><div>'+opt.l+'</div>'+(opt.d?'<div class="opt-desc">'+opt.d+'</div>':'')+'</div>';
+      btn.addEventListener('click',function(){
+        wrap.querySelectorAll('.opt-s').forEach(function(b){b.classList.remove('sel');});
+        btn.classList.add('sel');answers[q.id]=opt.v;updateNext();
+      });
+      wrap.appendChild(btn);
+    });
+    optEl.appendChild(wrap);
+  } else {
+    var wrap=document.createElement('div');wrap.className='opts-multi';
+    if(q.groups){q.groups.forEach(function(g){var gl=document.createElement('div');gl.className='opt-group-lbl';gl.textContent=g.label;wrap.appendChild(gl);g.opts.forEach(function(o){appendMulti(wrap,o,q.id,cur);});});}
+    else{q.options.forEach(function(o){appendMulti(wrap,o,q.id,cur);});}
+    optEl.appendChild(wrap);
+  }
+  var nav=document.querySelector('.q-nav');var sk=document.getElementById('skipLnk');
+  if(q.skippable){
+    if(!sk){sk=document.createElement('span');sk.id='skipLnk';sk.className='skip-lnk';sk.textContent='スキップ';nav.appendChild(sk);}
+    sk.onclick=function(){answers[q.id]=[];goNext();};sk.style.display='inline';
+  } else {if(sk)sk.style.display='none';}
+  document.getElementById('qBack').style.display=idx===0?'none':'';
+  updateNext();
+}
+function appendMulti(wrap,opt,qid,cur){
+  var btn=document.createElement('button');btn.className='opt-m'+(cur.includes(opt.v)?' sel':'');
+  btn.innerHTML='<div class="opt-chk"></div><span>'+opt.l+'</span>';
+  btn.addEventListener('click',function(){
+    btn.classList.toggle('sel');var arr=answers[qid]||[];var i=arr.indexOf(opt.v);
+    if(i===-1)arr.push(opt.v);else arr.splice(i,1);answers[qid]=arr;updateNext();
+  });
+  wrap.appendChild(btn);
+}
+function updateNext(){
+  var q=QUESTIONS[currentQ],btn=document.getElementById('qNext');
+  if(!q.required){btn.disabled=false;return;}
+  var ans=answers[q.id];btn.disabled=q.type==='single'?!ans:(!ans||ans.length===0);
+}
+function goNext(){
+  if(currentQ<QUESTIONS.length-1){currentQ++;renderQ(currentQ);}
+  else{initRecording();show('screen-recording');}
+}
+document.getElementById('qNext').addEventListener('click',function(){goNext();});
+document.getElementById('qBack').addEventListener('click',function(){
+  if(currentQ>0){currentQ--;renderQ(currentQ);}else{show('screen-welcome');}
+});
+
+/* ══════ RECORDING ══════ */
+function initRecording(){
+  // カラオケ初期化
+  document.getElementById('kLine0').innerHTML=charSpans(KLINES[0]);
+  document.getElementById('kLine1').innerHTML=charSpans(KLINES[1]);
+  document.getElementById('kLine2').innerHTML=charSpans(KLINES[2]);
+  document.getElementById('kLine3').innerHTML=charSpans(KLINES[3]);
+  document.getElementById('kLine4').innerHTML=charSpans(KLINES[4]);
+  // 1行目（指示文）は最初から全部lit
+  document.querySelectorAll('#kLine0 span').forEach(function(s){s.classList.add('lit');});
+  resetTimer();
+}
+function charSpans(text){
+  return text.split('').map(function(c){return '<span>'+c.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>';}).join('');
+}
+function resetTimer(){
+  recElapsed=0;
+  document.getElementById('timerText').textContent='20';
+  document.getElementById('timerProgress').style.strokeDashoffset='226';
+  document.getElementById('recStatus').textContent='録音ボタンを押して開始してください';
+  document.getElementById('recBtn').textContent='● 録音開始';
+  document.getElementById('recBtn').className='btn-rec';
+  document.getElementById('recDoneBtn').classList.remove('visible');
+  document.getElementById('retakeBtn').classList.remove('visible');
+  // カラオケリセット
+  ['kLine1','kLine2','kLine3','kLine4'].forEach(function(id){
+    document.querySelectorAll('#'+id+' span').forEach(function(s){s.classList.remove('lit');});
+  });
+}
+
+// カラオケ文字マッピング（1行目除く4行分、0〜20秒に均等配分）
+function updateKaraoke(elapsed){
+  var lines=[KLINES[1],KLINES[2],KLINES[3],KLINES[4]];
+  var totalChars=lines.reduce(function(a,l){return a+l.length;},0);
+  var charsPerSec=totalChars/KARAOKE_DURATION;
+  var litCount=Math.floor(elapsed*charsPerSec);
+  var count=0;
+  lines.forEach(function(line,li){
+    var spans=document.querySelectorAll('#kLine'+(li+1)+' span');
+    spans.forEach(function(s){
+      if(count<litCount)s.classList.add('lit');else s.classList.remove('lit');
+      count++;
+    });
+  });
+}
+
+document.getElementById('recBtn').addEventListener('click',async function(){
+  if(isRecording)return;
+  try{
+    var stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    analyser=audioCtx.createAnalyser();analyser.fftSize=2048;
+    var src=audioCtx.createMediaStreamSource(stream);src.connect(analyser);
+    recorder=new MediaRecorder(stream);audioChunks=[];
+    freqSamples=[];rmsSamples=[];hiSamples=[];loSamples=[];
+    recorder.ondataavailable=function(e){audioChunks.push(e.data);};
+    recorder.start(100);isRecording=true;
+    document.getElementById('recBtn').textContent='録音中...';
+    document.getElementById('recBtn').className='btn-rec recording';
+    document.getElementById('recStatus').innerHTML='<span class="rec-pulse"></span>録音中 — 例文を読み上げてください';
+    recElapsed=0;
+    recTimer=setInterval(function(){
+      recElapsed+=0.1;
+      // タイマー更新
+      var remain=Math.max(0,KARAOKE_DURATION-recElapsed);
+      document.getElementById('timerText').textContent=Math.ceil(remain);
+      var offset=226-(226*(recElapsed/KARAOKE_DURATION));
+      document.getElementById('timerProgress').style.strokeDashoffset=Math.max(0,offset);
+      // カラオケ更新
+      updateKaraoke(recElapsed);
+      // 音声解析サンプル収集
+      collectAudioSample();
+      // 自動終了
+      if(recElapsed>=KARAOKE_DURATION){stopRecording();}
+    },100);
+  } catch(e){
+    document.getElementById('recStatus').textContent='マイクにアクセスできませんでした。ブラウザの設定を確認してください。';
+  }
+});
+
+function collectAudioSample(){
+  if(!analyser)return;
+  var bufLen=analyser.frequencyBinCount;
+  var freqData=new Uint8Array(bufLen);var timeData=new Float32Array(bufLen);
+  analyser.getByteFrequencyData(freqData);analyser.getFloatTimeDomainData(timeData);
+  // RMS
+  var rms=0;for(var i=0;i<timeData.length;i++)rms+=timeData[i]*timeData[i];
+  rms=Math.sqrt(rms/timeData.length);rmsSamples.push(rms);
+  // ピーク周波数
+  var maxVal=0,maxIdx=0;
+  for(var i=0;i<bufLen;i++){if(freqData[i]>maxVal){maxVal=freqData[i];maxIdx=i;}}
+  var freq=(maxIdx*audioCtx.sampleRate)/(analyser.fftSize);
+  if(freq>60&&freq<1200)freqSamples.push(freq);
+  // 高域エネルギー比（4kHz以上）
+  var hiStart=Math.floor(4000/(audioCtx.sampleRate/analyser.fftSize));
+  var hiSum=0,totalSum=0;
+  for(var i=0;i<bufLen;i++){totalSum+=freqData[i];if(i>=hiStart)hiSum+=freqData[i];}
+  hiSamples.push(totalSum>0?hiSum/totalSum:0);
+  // 低域エネルギー比（500Hz以下）
+  var loEnd=Math.floor(500/(audioCtx.sampleRate/analyser.fftSize));
+  var loSum=0;
+  for(var i=0;i<loEnd;i++)loSum+=freqData[i];
+  loSamples.push(totalSum>0?loSum/totalSum:0);
+}
+
+function stopRecording(){
+  clearInterval(recTimer);isRecording=false;
+  if(recorder&&recorder.state!=='inactive')recorder.stop();
+  recorder.stream.getTracks().forEach(function(t){t.stop();});
+  // 平均算出
+  function avg(arr){return arr.length?arr.reduce(function(a,b){return a+b;},0)/arr.length:0;}
+  voiceData={
+    freq:Math.round(avg(freqSamples)),
+    rms:parseFloat((avg(rmsSamples)*100).toFixed(1)),
+    hiRatio:parseFloat((avg(hiSamples)*100).toFixed(1)),
+    loRatio:parseFloat((avg(loSamples)*100).toFixed(1))
+  };
+  lastVoiceData=voiceData;
+  updateKaraoke(KARAOKE_DURATION);
+  document.getElementById('timerText').textContent='✓';
+  document.getElementById('timerProgress').style.strokeDashoffset='0';
+  document.getElementById('recStatus').textContent='録音完了！確認してこのまま進むか、取り直すか選んでください。';
+  document.getElementById('recDoneBtn').classList.add('visible');
+  document.getElementById('retakeBtn').classList.add('visible');
+}
+
+document.getElementById('retakeBtn').addEventListener('click',function(){
+  if(audioCtx){audioCtx.close();audioCtx=null;}
+  isRecording=false;resetTimer();
+});
+document.getElementById('recDoneBtn').addEventListener('click',function(){startAnalysis();});
+
+/* ══════ ANALYSIS ══════ */
+function startAnalysis(){
+  show('screen-analyzing');
+  var msgs=['アンケートを整理しています...','録音データを解析しています...','マイクデータベースと照合しています...','最適な候補を選定しています...'];
+  var mi=0;document.getElementById('analyzing-msg').textContent=msgs[0];
+  var msgTimer=setInterval(function(){mi=(mi+1)%msgs.length;document.getElementById('analyzing-msg').textContent=msgs[mi];},1800);
+  callAPI(buildPrompt()).then(function(result){
+    clearInterval(msgTimer);lastResult=result;renderResult(result);show('screen-result');
+    // 使用回数カウント
+    if(urlMode&&urlToken){
+      var uses=parseInt(localStorage.getItem('micmatch_uses_'+urlToken)||'0')+1;
+      localStorage.setItem('micmatch_uses_'+urlToken,uses);
+    }
+  }).catch(function(e){
+    clearInterval(msgTimer);show('screen-recording');
+    alert('エラー: '+e.message);console.error(e);
+  });
+}
+
+/* ══════ PROMPT ══════ */
+function buildPrompt(mode){
+  var a=answers,vd=voiceData;
+  var PM={streaming:'配信・ゲーム実況',podcast:'ポッドキャスト・収録',singing:'歌・ボイスレコーディング',meeting:'ビデオ会議・リモートワーク'};
+  var pitchM={very_low:'かなり低い',low:'やや低い',mid:'中間',high:'やや高い',very_high:'かなり高い'};
+  var volM={small:'小さめ',normal:'普通',loud:'大きめ'};
+  var devM={usb:'USBマイク希望',xlr:'XLRマイク（I/F経由）',headset:'マイク付きヘッドセット希望',either:'どちらでもOK'};
+  var envM={noisy:'防音なし・普通の部屋',semi:'ある程度静か',quiet:'かなり静か'};
+  var budM={b5k:'〜¥5,000',b15k:'〜¥15,000',b30k:'〜¥30,000',b30kp:'¥30,000以上'};
+  var selfM={rec_low:'録音で思ったより低かった',rec_high:'録音で思ったより高かった',rec_muddy:'録音がこもって聞こえる',rec_clear:'録音はクリアで自然',life_mishear:'電話でよく聞き返される',life_quiet:'大きく話してるつもりで小さいと言われる',life_sibilant:'サ行・シ行が刺さる',life_breath:'息の音が気になる'};
+  var fbM={said_low:'「声が低い」',said_high:'「声が高い」',said_carry:'「よく通る声」',said_clear:'「聞き取りやすい」',said_quiet:'「もう少し大きく」',said_husky:'「ハスキー・かすれている」',said_none:'他人評価なし'};
+
+  var vdDesc='';
+  if(vd.freq>0){
+    var freqLbl=vd.freq<140?'低声域（男性的）':vd.freq<180?'中低声域':vd.freq<260?'中声域':vd.freq<320?'中高声域':'高声域';
+    vdDesc='基本周波数: '+vd.freq+'Hz（'+freqLbl+'）\n音圧レベル: '+vd.rms+'（'+(vd.rms<2?'小さめ':vd.rms<5?'普通':'大きめ')+'）\n高域エネルギー比: '+vd.hiRatio+'%（'+(vd.hiRatio>30?'サ行刺さりリスクあり':vd.hiRatio>20?'やや高め':'適正')+'）\n低域比率: '+vd.loRatio+'%（'+(vd.loRatio>60?'こもり傾向':vd.loRatio>45?'やや低域多め':'適正')+'）';
+  }
+
+  var isHeadset=(a.device==='headset');
+  var modeInst={
+    default:'コスパ・スタンダード・プロの3本（ヘッドセット希望の場合はヘッドセットも含む）を推薦してください。必ず1本に badge: "top" を付けてください。',
+    top:'既に提案したものとは別に「最もバランスが良くおすすめ」な視点で3本追加推薦してください。badge はすべて "top" にしてください。',
+    std:'既に提案したものとは別に「コスト対効果・スタンダード」な視点で3本追加推薦してください。badge はすべて "std" にしてください。',
+    pro:'既に提案したものとは別に「プロ・ハイエンド仕様」の視点で3本追加推薦してください。badge はすべて "pro" にしてください。',
+  };
+
+  return 'あなたはプロのサウンドエンジニアです。以下のユーザー情報をもとにマイク（またはヘッドセット）を推薦してください。\n\n【ユーザー情報】\n用途: '+(a.purpose||[]).map(function(v){return PM[v]||v;}).join('、')+'\n声の高さ（同性比較）: '+(pitchM[a.pitch]||'不明')+'\n声の大きさ: '+(volM[a.volume]||'不明')+'\n自己評価: '+(a.selfcheck||[]).map(function(v){return selfM[v]||v;}).join('、')||'なし'+'\n他人評価: '+(a.feedback||[]).map(function(v){return fbM[v]||v;}).join('、')||'なし'+'\n機材希望: '+(devM[a.device]||'不明')+'\n使用環境: '+(envM[a.env]||'不明')+'\n予算: '+(a.budget||[]).map(function(v){return budM[v]||v;}).join('、')+'\n\n【録音解析結果】\n'+(vdDesc||'録音データなし')+'\n\n【指示】\n'+modeInst[mode||'default']+'\n'+(isHeadset?'ヘッドセット希望のためマイク付きヘッドセットも積極的に候補に含めること。':'')+'\n\nマークダウンのコードブロックは使わず、以下のJSONのみ出力してください：\n\n'+(mode==='default'?'{\n  "summary": "声質サマリーを2〜3文で",\n  "mics": [':'{\n  "mics": [')+'\n    {\n      "name": "マイク名（メーカー名込み）",\n      "price": "価格帯（例：¥8,000〜¥10,000）",\n      "badge": "top / std / pro / hs のいずれか",\n      "tags": ["タグ1", "タグ2"],\n      "reason": "なぜこのユーザーの声質・環境・用途に合うか。音響的な根拠（周波数特性・指向性・感度など）を含めて200字程度で。",\n      "note": "注意点があれば（なければ空文字）"\n    }\n  ]\n}\n\n推薦するマイクは必ず実在する製品にしてください。根拠は音響工学的に正確に記述してください。';
+}
+
+async function callAPI(prompt){
+  var res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true','anthropic-version':'2023-06-01','x-api-key':apiKey},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2500,messages:[{role:'user',content:prompt}]})
+  });
+  var data=await res.json();
+  if(!res.ok)throw new Error(data&&data.error&&data.error.message||'HTTP '+res.status);
+  var text=(data.content&&data.content[0]&&data.content[0].text)||'';
+  var m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error('レスポンスの解析に失敗しました');
+  try{return JSON.parse(m[0]);}catch(e){
+    var raw=m[0];
+    for(var i=0;i<5;i++){
+      raw=raw.replace(/,\s*\{[^{}]*$/,'').replace(/,\s*"[^"]*"\s*:[^,}\]]*$/,'');
+      var o=(raw.match(/\[/g)||[]).length-(raw.match(/\]/g)||[]).length;
+      var c=(raw.match(/\{/g)||[]).length-(raw.match(/\}/g)||[]).length;
+      try{return JSON.parse(raw+']'.repeat(Math.max(0,o))+'}' .repeat(Math.max(0,c)));}catch(e2){}
+    }
+    throw new Error('JSON解析失敗');
+  }
+}
+
+/* ══════ RENDER RESULT ══════ */
+function renderResult(data){
+  // 声の解析グリッド
+  var vaGrid=document.getElementById('vaGrid');vaGrid.innerHTML='';
+  var vd=lastVoiceData||{freq:0,rms:0,hiRatio:0,loRatio:0};
+  var vaItems=[];
+  if(vd.freq>0){
+    var freqLbl=vd.freq<140?'低声域':vd.freq<200?'中低声域':vd.freq<280?'中声域':vd.freq<350?'中高声域':'高声域';
+    vaItems=[
+      {label:'基本周波数',val:vd.freq+'Hz',desc:freqLbl,pct:Math.min(100,(vd.freq-60)/400*100)},
+      {label:'音圧レベル',val:vd.rms+'',desc:vd.rms<2?'小さめ':vd.rms<5?'普通':'大きめ',pct:Math.min(100,vd.rms/10*100)},
+      {label:'高域エネルギー',val:vd.hiRatio+'%',desc:vd.hiRatio>30?'刺さりリスクあり':vd.hiRatio>20?'やや高め':'適正',pct:vd.hiRatio},
+      {label:'低域比率',val:vd.loRatio+'%',desc:vd.loRatio>60?'こもり傾向あり':vd.loRatio>45?'やや低域多め':'適正',pct:vd.loRatio},
+    ];
+  } else {
+    vaItems=[{label:'解析結果',val:'—',desc:'録音データなし',pct:0}];
+  }
+  vaItems.forEach(function(vi,i){
+    var el=document.createElement('div');el.className='va-item';
+    el.innerHTML='<div class="va-item-label">'+vi.label+'</div><div class="va-item-value">'+vi.val+'</div><div class="va-item-desc">'+vi.desc+'</div><div class="va-bar-wrap"><div class="va-bar" id="vb'+i+'" style="width:0%"></div></div>';
+    vaGrid.appendChild(el);
+    setTimeout(function(){var b=document.getElementById('vb'+i);if(b)b.style.width=vi.pct+'%';},300+i*100);
+  });
+  document.getElementById('voiceSummary').textContent=data.summary||'';
+  document.getElementById('micsList').innerHTML='';
+  renderMicCards(data.mics||[],document.getElementById('micsList'),0);
+}
+
+function renderMicCards(mics,container,delay){
+  mics.forEach(function(mic,i){
+    var card=document.createElement('div');
+    card.className='mic-card'+(mic.badge==='top'?' top':'');
+    card.style.animationDelay=(delay+i*0.1)+'s';
+    var bLabel=mic.badge==='top'?'◎ イチ推し':mic.badge==='pro'?'🎛 プロ仕様':mic.badge==='hs'?'🎧 ヘッドセット':'📦 スタンダード';
+    var bClass=mic.badge==='top'?'top':mic.badge==='pro'?'pro':mic.badge==='hs'?'hs':'std';
+    var tags=(mic.tags||[]).map(function(t){return '<span class="mic-tag">'+t+'</span>';}).join('');
+    var note=mic.note?'<div class="mic-note">⚠ '+mic.note+'</div>':'';
+    card.innerHTML='<div class="mic-header"><div><div class="mic-name">'+mic.name+'</div><div class="mic-price">'+mic.price+'</div></div><span class="mic-badge '+bClass+'">'+bLabel+'</span></div><div class="mic-tags">'+tags+'</div><div class="mic-reason">'+formatReason(mic.reason)+note+'</div>';
+    container.appendChild(card);
+  });
+}
+
+function formatReason(text){
+  var kw=['ダイナミックマイク','コンデンサーマイク','指向性','周波数特性','感度','高域','低域','中域','ゲイン','ノイズ','防音','USB','XLR','カーディオイド','単一指向','サ行','ヘッドセット'];
+  var html=(text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  kw.forEach(function(k){html=html.replace(new RegExp(k,'g'),'<strong>'+k+'</strong>');});
+  return html;
+}
+
+['top','std','pro'].forEach(function(mode){
+  document.getElementById('more'+mode.charAt(0).toUpperCase()+mode.slice(1)).addEventListener('click',async function(){
+    var btn=this;btn.disabled=true;
+    var ext=document.getElementById('extraMics');
+    var ld=document.createElement('div');ld.className='loading-inline';ld.innerHTML='<div class="spinner"></div><span>追加候補を取得中…</span>';
+    ext.appendChild(ld);
+    try{var result=await callAPI(buildPrompt(mode));ld.remove();renderMicCards(result.mics||[],ext,0);}
+    catch(e){ld.remove();var err=document.createElement('div');err.style.cssText='font-size:11px;color:var(--red);padding:8px 0;';err.textContent='エラー: '+e.message;ext.appendChild(err);btn.disabled=false;}
+  });
+});
+
+/* ══════ DOWNLOAD CANVAS ══════ */
+function wrapT(ctx,text,maxW){
+  var lines=[],line='';
+  for(var i=0;i<(text||'').length;i++){var ch=text[i],test=line+ch;if(ctx.measureText(test).width>maxW&&line!==''){lines.push(line);line=ch;}else{line=test;}}
+  if(line)lines.push(line);return lines;
+}
+document.getElementById('dlBtn').addEventListener('click',function(){
+  if(!lastResult)return;
+  var W=1080,PAD=72,COL=W-PAD*2,SC=2;
+  var cv=document.createElement('canvas');cv.width=W;cv.height=100;
+  var tmp=cv.getContext('2d');tmp.font='28px serif';
+  var mics=lastResult.mics||[];
+  var H=PAD+90+28+50; // header + summary
+  mics.forEach(function(mic){H+=36+26;tmp.font='28px serif';H+=wrapT(tmp,mic.reason||'',COL).length*42+20;});
+  H+=PAD+50;
+  cv.width=W*SC;cv.height=H*SC;
+  var ctx=cv.getContext('2d');ctx.scale(SC,SC);
+  // 背景
+  ctx.fillStyle='#090b0f';ctx.fillRect(0,0,W,H);
+  var g1=ctx.createRadialGradient(W/2,0,0,W/2,0,H*0.5);g1.addColorStop(0,'rgba(0,200,180,0.08)');g1.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
+  // グリッド
+  ctx.strokeStyle='rgba(0,200,180,0.03)';ctx.lineWidth=1;
+  for(var x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(var y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  function div(yy){var g=ctx.createLinearGradient(PAD,yy,W-PAD,yy);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.5,'rgba(0,200,180,0.2)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(PAD,yy);ctx.lineTo(W-PAD,yy);ctx.stroke();}
+  var y=PAD;
+  // ヘッダー
+  ctx.font='bold 26px "Syne",Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText('🎙  MicMatch',PAD,y+26);
+  ctx.font='18px Georgia,sans-serif';ctx.fillStyle='rgba(0,200,180,0.7)';ctx.textAlign='right';ctx.fillText('あなたの声に合うマイク',W-PAD,y+26);ctx.textAlign='left';
+  y+=62;div(y);y+=28;
+  // サマリー
+  ctx.font='26px serif';ctx.fillStyle='#94a3b8';
+  wrapT(ctx,lastResult.summary||'',COL).forEach(function(l){ctx.fillText(l,PAD,y);y+=40;});
+  y+=12;div(y);y+=28;
+  // 声の解析
+  var vd=lastVoiceData||{freq:0,rms:0,hiRatio:0,loRatio:0};
+  if(vd.freq>0){
+    ctx.font='bold 20px "Syne",Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText('— 声の解析',PAD,y);y+=30;
+    ctx.font='24px serif';ctx.fillStyle='#64748b';
+    ctx.fillText('基本周波数: '+vd.freq+'Hz　音圧: '+vd.rms+'　高域: '+vd.hiRatio+'%　低域: '+vd.loRatio+'%',PAD,y);y+=36;
+    div(y);y+=28;
+  }
+  // マイク
+  mics.forEach(function(mic,i){
+    var bLabel=mic.badge==='top'?'◎ イチ推し':mic.badge==='pro'?'🎛 プロ仕様':mic.badge==='hs'?'🎧 ヘッドセット':'📦 スタンダード';
+    ctx.font='bold 22px "Syne",Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(bLabel,PAD,y);
+    ctx.font='bold 28px "Syne",Georgia,sans-serif';ctx.fillStyle='#e2e8f0';ctx.fillText(mic.name,PAD+180,y);
+    ctx.font='20px Georgia,sans-serif';ctx.fillStyle='#00c8b4';ctx.fillText(mic.price,PAD+180,y+28);y+=52;
+    ctx.font='26px serif';ctx.fillStyle='#64748b';
+    wrapT(ctx,mic.reason||'',COL).forEach(function(l){ctx.fillText(l,PAD,y);y+=40;});
+    y+=16;if(i<mics.length-1){div(y);y+=24;}
+  });
+  // フッター
+  div(y+10);
+  ctx.font='18px "Syne",Georgia,sans-serif';ctx.fillStyle='#c9a84c';ctx.fillText('MicMatch',PAD,y+36);
+  ctx.textAlign='right';ctx.fillText('🎙',W-PAD,y+36);ctx.textAlign='left';
+  cv.toBlob(function(b){var u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='micmatch-result.png';a.click();URL.revokeObjectURL(u);},'image/png');
+});
+
+/* ══════ RESTART ══════ */
+document.getElementById('restartBtn').addEventListener('click',function(){
+  currentQ=0;answers={};voiceData={freq:0,rms:0,hiRatio:0,loRatio:0};lastResult=null;lastVoiceData=null;
+  if(audioCtx){audioCtx.close();audioCtx=null;}
+  isRecording=false;clearInterval(recTimer);
+  document.getElementById('extraMics').innerHTML='';
+  ['moreTop','moreStd','morePro'].forEach(function(id){document.getElementById(id).disabled=false;});
+  show('screen-welcome');
+});
+
+/* ══════ INIT ══════ */
+(function init(){
+  var hash=location.hash.slice(1);var params={};
+  hash.split('&').forEach(function(p){var kv=p.split('=');if(kv[0])params[kv[0]]=kv[1]||'';});
+  if(params.k){
+    urlMode=true;urlToken=params.t||'';
+    // 使用回数チェック（2回まで）
+    var uses=parseInt(localStorage.getItem('micmatch_uses_'+urlToken)||'0');
+    if(uses>=2){
+      document.getElementById('apikey-screen').remove();
+      var ls=document.getElementById('screen-limit');ls.style.display='flex';ls.style.alignItems='center';ls.style.justifyContent='center';
+      return;
+    }
+    try{apiKey=atob(params.k);}catch(e){apiKey='';}
+    document.getElementById('apikey-screen').remove();
+  } else {
+    // 管理者モード
+    document.getElementById('issueBtn').classList.add('visible');
+    document.getElementById('keyBtn').classList.add('visible');
+    var saved=localStorage.getItem('micmatch_api_key');
+    if(saved&&saved.startsWith('sk-ant-')){
+      apiKey=saved;document.getElementById('apikey-screen').remove();
+    } else {
+      setupKeyScreen();
+    }
+  }
+})();
+</script>
+</body>
+</html>
